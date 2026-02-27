@@ -1,117 +1,529 @@
 <!DOCTYPE html>
-<html lang="en-us">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity WebGL Player | GD3D</title>
-
-    <!-- Cache control for GitHub Pages -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
-
-    <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
-    <link rel="manifest" href="manifest.webmanifest">
-
-    <!-- 🔥 VERSION + CACHE BUSTING -->
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexora — The Browser for Work & Privacy</title>
+    <meta name="description" content="Nexora is a sleek, minimalist browser built on Chromium, designed for professionals who value privacy and productivity.">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      const GAME_VERSION = "0.1.7b"; // bump this every release
-
-      // Clear Cache Storage (NOT cookies)
-      if ("caches" in window) {
-        caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
-      }
-
-      // Force one hard reload if version changed
-      const storedVersion = localStorage.getItem("gd3d_version");
-      if (storedVersion !== GAME_VERSION) {
-        localStorage.setItem("gd3d_version", GAME_VERSION);
-        location.reload(true);
-      }
-
-      // Kill old service workers (very important for GitHub Pages)
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.getRegistrations().then(regs => {
-          regs.forEach(reg => reg.unregister());
-        });
-      }
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        nexora: {
+                            black: '#0a0a0a',
+                            dark: '#141414',
+                            gray: '#1f1f1f',
+                            light: '#e5e5e5',
+                            white: '#ffffff',
+                            accent: '#333333'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'fade-in': 'fadeIn 0.8s ease-out forwards',
+                        'slide-up': 'slideUp 0.8s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(30px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
     </script>
-  </head>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a0a;
+            color: #ffffff;
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #ffffff 0%, #888888 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-glow {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .browser-mockup {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 100px rgba(255,255,255,0.05);
+        }
+        
+        .feature-card {
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .download-btn {
+            background: linear-gradient(135deg, #ffffff 0%, #e5e5e5 100%);
+            color: #0a0a0a;
+            transition: all 0.3s ease;
+        }
+        
+        .download-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 20px 40px rgba(255,255,255,0.1);
+        }
+        
+        .privacy-grid {
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+    </style>
+</head>
+<body class="antialiased overflow-x-hidden">
 
-  <body>
-    <div id="unity-container">
-      <canvas id="unity-canvas" width="1920" height="1080" tabindex="-1"></canvas>
-      <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass-effect border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-nexora-black border border-white/20 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-lg">N</span>
+                    </div>
+                    <span class="font-semibold text-lg tracking-tight">Nexora</span>
+                </div>
+                
+                <div class="hidden md:block">
+                    <div class="flex items-center space-x-8">
+                        <a href="#features" class="text-sm text-gray-400 hover:text-white transition-colors">Features</a>
+                        <a href="#privacy" class="text-sm text-gray-400 hover:text-white transition-colors">Privacy</a>
+                        <a href="#work" class="text-sm text-gray-400 hover:text-white transition-colors">Work</a>
+                        <a href="#download" class="text-sm bg-white text-black px-4 py-2 rounded-full font-medium hover:bg-gray-200 transition-colors">Download</a>
+                    </div>
+                </div>
+                
+                <button id="mobile-menu" class="md:hidden text-white">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+            </div>
         </div>
-      </div>
-      <div id="unity-warning"></div>
-    </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu-panel" class="hidden md:hidden glass-effect border-t border-white/5">
+            <div class="px-4 pt-2 pb-6 space-y-2">
+                <a href="#features" class="block px-3 py-2 text-base text-gray-400 hover:text-white">Features</a>
+                <a href="#privacy" class="block px-3 py-2 text-base text-gray-400 hover:text-white">Privacy</a>
+                <a href="#work" class="block px-3 py-2 text-base text-gray-400 hover:text-white">Work</a>
+                <a href="#download" class="block px-3 py-2 text-base text-white bg-white/10 rounded-lg mt-4 text-center">Download Nexora</a>
+            </div>
+        </div>
+    </nav>
 
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex items-center justify-center pt-16 overflow-hidden">
+        <div class="hero-glow"></div>
+        
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="animate-fade-in">
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 mb-8">
+                    <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                    <span class="text-sm text-gray-300">Built on Electron</span>
+                </div>
+                
+                <h1 class="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-6 leading-tight">
+                    Browse <span class="gradient-text">Differently</span>
+                </h1>
+                
+                <p class="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto mb-12 font-light leading-relaxed">
+                    A minimalist browser engineered for focus. Privacy-first architecture meets professional productivity.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+                    <a href="#download" class="download-btn px-8 py-4 rounded-full font-semibold text-lg flex items-center gap-2 group">
+                        <span>Download for macOS</span>
+                        <i data-lucide="arrow-down" class="w-5 h-5 group-hover:translate-y-1 transition-transform"></i>
+                    </a>
+                    <a href="features.html" class="px-8 py-4 rounded-full font-medium text-lg text-white border border-white/20 hover:bg-white/5 transition-all">
+                        Explore Features
+                    </a>
+                </div>
+            </div>
+
+            <!-- Browser Mockup -->
+            <div class="animate-slide-up relative max-w-4xl mx-auto" style="animation-delay: 0.3s;">
+                <div class="browser-mockup rounded-xl overflow-hidden bg-nexora-dark border border-white/10">
+                    <!-- Browser Chrome -->
+                    <div class="bg-nexora-gray px-4 py-3 flex items-center gap-2 border-b border-white/5">
+                        <div class="flex gap-2">
+                            <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+                        </div>
+                        <div class="flex-1 mx-4">
+                            <div class="bg-nexora-black rounded-md px-4 py-1.5 text-xs text-gray-500 flex items-center gap-2 max-w-md mx-auto">
+                                <i data-lucide="lock" class="w-3 h-3"></i>
+                                <span>nexora://PrivateMode</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Browser Content -->
+                    <div class="aspect-video bg-gradient-to-br from-nexora-black to-nexora-dark flex items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 privacy-grid opacity-20"></div>
+                        <div class="text-center z-10 p-8">
+                            <div class="w-16 h-16 bg-white rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-2xl">
+                                <span class="text-black font-bold text-3xl">N</span>
+                            </div>
+                            <p class="text-gray-400 text-sm">Private Session Active</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Grid -->
+    <section id="features" class="py-32 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-20 animate-on-scroll">
+                <h2 class="text-3xl md:text-5xl font-bold mb-6">Designed for the way you<br><span class="gradient-text">work today</span></h2>
+                <p class="text-gray-400 text-lg max-w-2xl mx-auto">Every feature is intentionally crafted to remove friction and protect your attention.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Feature 1 -->
+                <div class="feature-card p-8 rounded-2xl bg-nexora-dark border border-white/5 animate-on-scroll">
+                    <div class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center mb-6 border border-white/10">
+                        <i data-lucide="shield" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Built-in Privacy</h3>
+                    <p class="text-gray-400 leading-relaxed">Native ad-blocking, tracker prevention, and fingerprint randomization. Your data never leaves your device.</p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="feature-card p-8 rounded-2xl bg-nexora-dark border border-white/5 animate-on-scroll" style="transition-delay: 100ms;">
+                    <div class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center mb-6 border border-white/10">
+                        <i data-lucide="zap" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Blur Speed</h3>
+                    <p class="text-gray-400 leading-relaxed">Optimized Chromium engine with memory management. 40% less RAM usage than standard browsers.</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="feature-card p-8 rounded-2xl bg-nexora-dark border border-white/5 animate-on-scroll" style="transition-delay: 200ms;">
+                    <div class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center mb-6 border border-white/10">
+                        <i data-lucide="layout" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Minimal UI</h3>
+                    <p class="text-gray-400 leading-relaxed">Distraction-free interface with collapsible sidebars and focus mode. Just you and your content.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Privacy Section -->
+    <section id="privacy" class="py-32 bg-nexora-dark relative overflow-hidden">
+        <div class="absolute inset-0 privacy-grid opacity-30"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                <div class="animate-on-scroll">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 mb-6">
+                        <i data-lucide="eye-off" class="w-4 h-4 text-gray-400"></i>
+                        <span class="text-sm text-gray-400">Zero Tracking</span>
+                    </div>
+                    <h2 class="text-4xl md:text-5xl font-bold mb-6">Your business is<br>nobody else's</h2>
+                    <p class="text-gray-400 text-lg mb-8 leading-relaxed">
+                        Nexora blocks over 3,000 trackers by default. We don't collect browsing history, search queries, or personal information. Ever.
+                    </p>
+                    <ul class="space-y-4">
+                        <li class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <i data-lucide="check" class="w-3 h-3 text-white"></i>
+                            </div>
+                            <span class="text-gray-300">Automatic HTTPS upgrading</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <i data-lucide="check" class="w-3 h-3 text-white"></i>
+                            </div>
+                            <span class="text-gray-300">DNS-over-HTTPS support</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <i data-lucide="check" class="w-3 h-3 text-white"></i>
+                            </div>
+                            <span class="text-gray-300">Sandboxed site isolation</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="animate-on-scroll relative">
+                    <div class="aspect-square rounded-2xl bg-gradient-to-br from-nexora-black to-nexora-gray border border-white/10 p-8 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="w-32 h-32 rounded-full border-4 border-white/10 flex items-center justify-center mb-6 mx-auto animate-pulse">
+                                <div class="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center">
+                                    <i data-lucide="shield-check" class="w-12 h-12 text-white"></i>
+                                </div>
+                            </div>
+                            <p class="text-4xl font-bold mb-2">100%</p>
+                            <p class="text-gray-500 uppercase tracking-widest text-sm">Privacy Protected</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Work Section -->
+    <section id="work" class="py-32">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                <div class="order-2 lg:order-1 animate-on-scroll">
+                    <div class="relative">
+                        <div class="browser-mockup rounded-xl overflow-hidden bg-nexora-dark border border-white/10 transform rotate-1 hover:rotate-0 transition-transform duration-500">
+                            <div class="bg-nexora-gray px-4 py-3 flex items-center gap-2 border-b border-white/5">
+                                <div class="flex gap-2">
+                                    <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+                                    <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                                    <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+                                </div>
+                            </div>
+                            <div class="p-6 space-y-4 bg-nexora-black">
+                                <div class="h-2 bg-white/10 rounded w-3/4"></div>
+                                <div class="h-2 bg-white/5 rounded w-1/2"></div>
+                                <div class="grid grid-cols-3 gap-4 mt-6">
+                                    <div class="h-24 bg-white/5 rounded-lg"></div>
+                                    <div class="h-24 bg-white/5 rounded-lg"></div>
+                                    <div class="h-24 bg-white/5 rounded-lg"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="absolute -bottom-4 -right-4 glass-effect p-4 rounded-xl border border-white/10 animate-float">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                                    <i data-lucide="mouse-pointer-2" class="w-5 h-5 text-green-400"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium">Focus Mode</p>
+                                    <p class="text-xs text-gray-500">No distractions</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="order-1 lg:order-2 animate-on-scroll">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 mb-6">
+                        <i data-lucide="briefcase" class="w-4 h-4 text-gray-400"></i>
+                        <span class="text-sm text-gray-400">Professional Tools</span>
+                    </div>
+                    <h2 class="text-4xl md:text-5xl font-bold mb-6">Work without<br>the clutter</h2>
+                    <p class="text-gray-400 text-lg mb-8 leading-relaxed">
+                        Split views, workspace organization, and native markdown support. Nexora adapts to your workflow, not the other way around.
+                    </p>
+                    <div class="space-y-6">
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 flex-shrink-0">
+                                <i data-lucide="columns" class="w-5 h-5 text-white"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-1">Split View</h4>
+                                <p class="text-sm text-gray-400">Work with two tabs side-by-side without external windows.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 flex-shrink-0">
+                                <i data-lucide="command" class="w-5 h-5 text-white"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-1">Command Palette</h4>
+                                <p class="text-sm text-gray-400">Keyboard-first navigation with powerful shortcuts.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download CTA -->
+    <section id="download" class="py-32 relative">
+        <div class="absolute inset-0 bg-gradient-to-t from-nexora-dark to-transparent"></div>
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+            <div class="animate-on-scroll">
+                <div class="w-20 h-20 bg-white rounded-3xl mx-auto mb-8 flex items-center justify-center shadow-2xl">
+                    <span class="text-black font-bold text-4xl">N</span>
+                </div>
+                <h2 class="text-4xl md:text-6xl font-bold mb-6">Ready to switch?</h2>
+                <p class="text-gray-400 text-xl mb-12 max-w-xl mx-auto">
+                    Join thousands of professionals who've made the change to distraction-free browsing.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+                    <button class="download-btn px-8 py-4 rounded-full font-semibold text-lg flex items-center gap-2 w-full sm:w-auto justify-center">
+                        <i data-lucide="apple" class="w-5 h-5"></i>
+                        <span>macOS</span>
+                    </button>
+                    <button class="px-8 py-4 rounded-full font-medium text-lg text-white border border-white/20 hover:bg-white/5 transition-all w-full sm:w-auto flex items-center gap-2 justify-center">
+                        <i data-lucide="monitor" class="w-5 h-5"></i>
+                        <span>Windows</span>
+                    </button>
+                    <button class="px-8 py-4 rounded-full font-medium text-lg text-white border border-white/20 hover:bg-white/5 transition-all w-full sm:w-auto flex items-center gap-2 justify-center">
+                        <i data-lucide="linux" class="w-5 h-5"></i>
+                        <span>Linux</span>
+                    </button>
+                </div>
+                
+                <p class="text-sm text-gray-500">Version 2.0.1 • Free forever</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/5 py-12 bg-nexora-dark">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8 mb-8">
+                <div class="col-span-2">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-8 h-8 bg-nexora-black border border-white/20 rounded-lg flex items-center justify-center">
+                            <span class="text-white font-bold text-lg">N</span>
+                        </div>
+                        <span class="font-semibold text-lg">Nexora</span>
+                    </div>
+                    <p class="text-gray-400 text-sm max-w-xs">
+                        The minimalist browser for professionals. Built on Chromium, designed for privacy.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Product</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Features</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Download</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Changelog</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Roadmap</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Company</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">About</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Privacy</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Terms</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-sm text-gray-500">© 2024 Nexora Browser. All rights reserved.</p>
+                <div class="flex gap-6">
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i data-lucide="twitter" class="w-5 h-5"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i data-lucide="github" class="w-5 h-5"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i data-lucide="linkedin" class="w-5 h-5"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-      var container = document.querySelector("#unity-container");
-      var canvas = document.querySelector("#unity-canvas");
-      var loadingBar = document.querySelector("#unity-loading-bar");
-      var progressBarFull = document.querySelector("#unity-progress-bar-full");
-      var warningBanner = document.querySelector("#unity-warning");
-
-      function unityShowBanner(msg, type) {
-        function updateBannerVisibility() {
-          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
-        }
-        var div = document.createElement('div');
-        div.innerHTML = msg;
-        warningBanner.appendChild(div);
-        if (type === 'error') div.style = 'background: red; padding: 10px;';
-        else {
-          if (type === 'warning') div.style = 'background: yellow; padding: 10px;';
-          setTimeout(() => {
-            warningBanner.removeChild(div);
-            updateBannerVisibility();
-          }, 5000);
-        }
-        updateBannerVisibility();
-      }
-
-      var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/ea153e321edf23b9a40b38d65ce41d01.loader.js";
-
-      var config = {
-        dataUrl: buildUrl + "/755e83aa5f056c67858ab725c75fc830.data",
-        frameworkUrl: buildUrl + "/65767f866c90c54e0ae5bfefa6de01a5.framework.js",
-        codeUrl: buildUrl + "/ccc1463dd8e0e9b0681d41adf51d97d3.wasm",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "Charvey544",
-        productName: "GD3D",
-        productVersion: GAME_VERSION,
-        showBanner: unityShowBanner,
-      };
-
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.head.appendChild(meta);
-      }
-
-      loadingBar.style.display = "block";
-
-      var script = document.createElement("script");
-      script.src = loaderUrl;
-      script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
-          progressBarFull.style.width = (100 * progress) + "%";
-        }).then(() => {
-          loadingBar.style.display = "none";
-        }).catch((message) => {
-          alert(message);
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu');
+        const mobileMenuPanel = document.getElementById('mobile-menu-panel');
+        
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenuPanel.classList.toggle('hidden');
         });
-      };
-
-      document.body.appendChild(script);
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                    // Close mobile menu if open
+                    mobileMenuPanel.classList.add('hidden');
+                }
+            });
+        });
+        
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        
+        // Observe elements with animate-on-scroll class
+        document.querySelectorAll('.animate-on-scroll').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+            observer.observe(el);
+        });
+        
+        // Add parallax effect to hero glow
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const heroGlow = document.querySelector('.hero-glow');
+            if (heroGlow) {
+                heroGlow.style.transform = `translate(-50%, -50%) translateY(${scrolled * 0.5}px)`;
+            }
+        });
     </script>
-  </body>
+</body>
 </html>
